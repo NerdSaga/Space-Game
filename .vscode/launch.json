@@ -11,6 +11,17 @@
             "type": "chrome",
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}"
+        },
+
+        {
+            "name": "Launch Native",
+            "program": "${workspaceFolder}/main.js",
+            "request": "launch",
+            "runtimeExecutable": "electron",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         }
     ]
 }

@@ -2,9 +2,10 @@
   "name": "space-game",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "web": "vite ."
+    "web": "vite .",
+    "app": "electron ."
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/NerdSaga/Space-Game#readme",
   "devDependencies": {
+    "electron": "^39.2.7",
     "vite": "^7.3.0"
   }
 }
