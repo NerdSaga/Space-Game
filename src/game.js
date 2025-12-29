@@ -1,4 +1,4 @@
-import { Background, Entity, Label, Player } from "./game_objects.js"
+import { Background, Entity, Flappy, Label, Player, Swoopy } from "./game_objects.js"
 
 class Game {
 
@@ -23,6 +23,12 @@ class Game {
 
         const label = new Label("12 29 2025", 8, 8)
         this.queueSpawn(label)
+
+        const flappy = new Flappy(288 - 50, 60)
+        this.queueSpawn(flappy)
+
+        const swoopy = new Swoopy(288 - 50, 60 + 20)
+        this.queueSpawn(swoopy)
     }
 
     /**

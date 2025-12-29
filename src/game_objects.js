@@ -190,3 +190,66 @@ export class Label extends Spatial {
         this.text = text
     }
 }
+
+export class Flappy extends Spatial {
+
+    /** @type { AnimatedSprite } */
+    #sprite = null
+
+    ready() {
+        this.#sprite = new AnimatedSprite(
+            assets.images.sprites,
+            16, 16,
+            0,
+            4,
+            0.05,
+            false,
+        )
+    }
+
+    /**
+     * 
+     * @param {number} deltaTime 
+     */
+    update(deltaTime) {
+        this.#sprite.step(deltaTime)
+    }
+
+    /**
+     * 
+     * @param {number} gfx 
+     */
+    render(gfx) {
+        this.#sprite.draw(gfx, this.position.x, this.position.y)
+    }
+
+    constructor(x, y) {
+        super(x, y)
+    }
+}
+
+export class Swoopy extends Spatial {
+
+    /** @type { AnimatedSprite } */
+    #sprite = null
+
+    ready() {
+        this.#sprite = new AnimatedSprite(
+            assets.images.sprites,
+            16,
+            16,
+            1,
+            4,
+            1,
+            true,
+        )
+    }
+
+    update(deltaTime) {
+        this.#sprite.step(deltaTime)
+    }
+
+    render(gfx) {
+        this.#sprite.draw(gfx, this.position.x, this.position.y)
+    }
+}
