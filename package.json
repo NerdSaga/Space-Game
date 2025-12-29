@@ -1,0 +1,22 @@
+{
+  "name": "space-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "web": "vite ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NerdSaga/Space-Game.git"
+  },
+  "author": "Nerd Saga",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NerdSaga/Space-Game/issues"
+  },
+  "homepage": "https://github.com/NerdSaga/Space-Game#readme",
+  "devDependencies": {
+    "vite": "^7.3.0"
+  }
+}

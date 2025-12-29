@@ -1,0 +1,107 @@
+import { Background, Entity, Label, Player } from "./game_objects.js"
+
+class Game {
+
+    /** @type { Array<Entity> } */
+    gameObjects = []
+
+    /** @type { Array<Entity> } */
+    #spawnQueue = []
+
+    /** @type { Array<Entity> } */
+    #deleteQueue = []
+
+    /** @type { Array<Entity> } */
+    #readyQueue = []
+
+    start() {
+        const backgroud = new Background()
+        this.queueSpawn(backgroud)
+
+        const player = new Player(64, 64)
+        this.queueSpawn(player)
+
+        const label = new Label("12 29 2025", 8, 8)
+        this.queueSpawn(label)
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} gfx 
+     * @param {number} deltaTime 
+     */
+    update(gfx, deltaTime) {
+
+
+        // Run through delete queue. MARK: TEST
+        if (this.#deleteQueue.length > 0) {
+            let delObjID = 0
+            for (let i = 0; i < this.gameObjects.length; i++) {
+
+                const object = this.gameObjects[i]
+                const delObject = this.#deleteQueue[delObjID]
+                object.id = i
+
+                if (object.id == delObject.id) {
+                    this.gameObjects.splice(i, 1)
+                }
+
+            }
+        }
+
+        // Run through spawn queue. MARK: TEST
+        if (this.#spawnQueue.length > 0) {
+            for (let i = 0; i < this.#spawnQueue.length; i++) {
+
+                const object = this.#spawnQueue[i]
+                object.id = this.gameObjects.length
+                this.gameObjects.push(object)
+                this.#readyQueue.push(object)
+            }
+
+            this.#spawnQueue.splice(0, this.#spawnQueue.length)
+        }
+
+        if (this.#readyQueue.length > 0) {
+            for (let i = 0; i < this.#readyQueue.length; i++) {
+                const object = this.#readyQueue[i]
+                object.ready()
+                
+            }
+
+            this.#readyQueue.splice(0, this.#readyQueue.length)
+        }
+
+        // Update.
+        for (let i = 0; i < this.gameObjects.length; i++) {
+
+            const object = this.gameObjects[i]
+            object.update(deltaTime)
+        }
+
+        // Render.
+        for (let i = 0; i < this.gameObjects.length; i++) {
+
+            const object = this.gameObjects[i]
+            object.render(gfx)
+        }
+    }
+
+    /**
+     * 
+     * @param {Entity} entity 
+     */
+    queueSpawn(entity) {
+        this.#spawnQueue.push(entity)
+    }
+
+    /**
+     * 
+     * @param {Entity} entity 
+     */
+    queueDelete(entity) {
+        this.#deleteQueue.push(entity)
+    }
+}
+
+export const game = new Game()
