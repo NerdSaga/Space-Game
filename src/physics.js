@@ -27,13 +27,15 @@ class PhysicsEngine {
             this.#deleteQueue.splice(0, this.#deleteQueue.length)
 
             for (let i = 0; i < this.physicsObjects.length; i++) {
-                const object = this.physicsObjects[i]
+                let object = this.physicsObjects[i]
 
-                if (object.id == -1) {
+                while (object && object.id == -1) {
+
                     this.physicsObjects.splice(i, 1)
+                    object = this.physicsObjects[i]
                 }
 
-                if (this.physicsObjects[i]) {
+                if (this.physicsObjects[i] && this.physicsObjects[i].id != -1) {
                     this.physicsObjects[i].id = i
                 }
             }

@@ -27,6 +27,9 @@ class Game {
         const flappy = new Flappy(288 - 50, 60)
         this.queueSpawn(flappy)
 
+        const flappy1 = new Flappy(288 - 53, 60)
+        this.queueSpawn(flappy1)
+
         const swoopy = new Swoopy(288 - 50, 60 + 20)
         this.queueSpawn(swoopy)
     }
@@ -51,13 +54,15 @@ class Game {
             this.#deleteQueue.splice(0, this.#deleteQueue.length)
 
             for (let i = 0; i < this.gameObjects.length; i++) {
-                const object = this.gameObjects[i]
+                let object = this.gameObjects[i]
 
-                if (object.id == -1) {
+                while (object && object.id == -1) {
+
                     this.gameObjects.splice(i, 1)
+                    object = this.gameObjects[i]
                 }
 
-                if (this.gameObjects[i]) {
+                if (this.gameObjects[i] && this.gameObjects[i].id != -1) {
                     this.gameObjects[i].id = i
                 }
 

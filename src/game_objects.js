@@ -333,6 +333,7 @@ export class Bullet extends Spatial {
 
     /** @type {AnimatedSprite} */
     #sprite = null
+    #delete = false
 
 
     ready() {
@@ -361,6 +362,10 @@ export class Bullet extends Spatial {
         this.#physics.y = this.position.y + 6 
         this.#life -= 1 * deltaTime
         if (this.#life <= 0) {
+            this.#delete = true
+        }
+
+        if (this.#delete) {
             game.queueDelete(this)
             physics.queueDelete(this.#physics)
         }
@@ -381,8 +386,7 @@ export class Bullet extends Spatial {
      * @param {PhysicsObject} object 
      */
     onCollide(self, object) {
-        game.queueDelete(self) // This line crashes the game.
-        physics.queueDelete(self.#physics)
+        self.#delete = true
     }
 
 
