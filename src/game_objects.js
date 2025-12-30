@@ -2,6 +2,7 @@ import { assets } from "./assets.js"
 import { game } from "./game.js"
 import { AnimatedSprite } from "./graphics.js"
 import { input } from "./input.js"
+import { physics, PhysicsObject } from "./physics.js"
 
 /** @abstract */
 export class Entity {
@@ -40,70 +41,6 @@ export class Spatial extends Entity {
         super()
         this.position.x = x
         this.position.y = y
-    }
-}
-
-
-
-export class Player extends Spatial {
-
-    /** @type {AnimatedSprite} */
-    #sprite = null
-    #moveSpeed = 80
-    #velocity = {
-        x: 0,
-        y: 0,
-    }
-
-    ready() {
-        this.#sprite = new AnimatedSprite(
-            assets.images.sprites,
-            16, 16,
-            3,
-            4,
-            0.5,
-            true
-        )
-    }
-
-    /**
-     * 
-     * @param {number} deltaTime 
-     */
-    update(deltaTime) {
-
-        this.#velocity.x = input.dir.x * this.#moveSpeed * deltaTime
-        this.#velocity.y = input.dir.y * this.#moveSpeed * deltaTime
-
-        this.position.x += this.#velocity.x
-        this.position.y += this.#velocity.y
-
-        if (input.dir.y == 0) {
-            this.#sprite.currentFrame = 1
-        }
-        if (input.dir.y == -1) {
-            this.#sprite.currentFrame = 2
-        }
-        if (input.dir.y == 1) {
-            this.#sprite.currentFrame = 0
-        }
-    }
-
-    /**
-     * 
-     * @param {CanvasRenderingContext2D} gfx 
-     */
-    render(gfx) {
-        this.#sprite.draw(gfx, this.position.x, this.position.y)
-    }
-
-    /**
-     * 
-     * @param {number} x 
-     * @param {number} y 
-     */
-    constructor(x, y) {
-        super(x, y)
     }
 }
 
@@ -191,10 +128,99 @@ export class Label extends Spatial {
     }
 }
 
+export class Player extends Spatial {
+
+    /** @type {AnimatedSprite} */
+    #sprite = null
+    #moveSpeed = 80
+    #velocity = {
+        x: 0,
+        y: 0,
+    }
+
+    /** @type { PhysicsObject } */
+    #physics = null
+
+    ready() {
+        this.#sprite = new AnimatedSprite(
+            assets.images.sprites,
+            16, 16,
+            3,
+            4,
+            0.5,
+            true
+        )
+        this.#physics = new PhysicsObject("player", this, this.position.x, this.position.y, 16, 8, this.onCollide)
+        physics.queueSpawn(this.#physics)
+    }
+
+    /**
+     * 
+     * @param {number} deltaTime 
+     */
+    update(deltaTime) {
+
+        this.#velocity.x = input.dir.x * this.#moveSpeed * deltaTime
+        this.#velocity.y = input.dir.y * this.#moveSpeed * deltaTime
+
+        this.position.x += this.#velocity.x
+        this.position.y += this.#velocity.y
+
+        if (input.dir.y == 0) {
+            this.#sprite.currentFrame = 1
+        }
+        if (input.dir.y == -1) {
+            this.#sprite.currentFrame = 2
+        }
+        if (input.dir.y == 1) {
+            this.#sprite.currentFrame = 0
+        }
+
+        this.#physics.x = Math.round(this.position.x)
+        this.#physics.y = Math.round(this.position.y + 3)
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} gfx 
+     */
+    render(gfx) {
+        this.#sprite.draw(gfx, this.position.x, this.position.y)
+        // this.#physics.draw(gfx)
+    }
+
+    /**
+     * @param {Player} self 
+     * @param {PhysicsObject} object 
+     * 
+     */
+    onCollide(self, object) {
+        if (object.name == "enemy") {
+            const explosion = new Explosion(self.position.x, self.position.y)
+            game.queueSpawn(explosion)
+            game.queueDelete(self)
+        }
+
+        physics.queueDelete(self.#physics)
+    }
+
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    constructor(x, y) {
+        super(x, y)
+    }
+}
+
 export class Flappy extends Spatial {
 
     /** @type { AnimatedSprite } */
     #sprite = null
+
+    /** @type { PhysicsObject } */
+    #physics = null
 
     ready() {
         this.#sprite = new AnimatedSprite(
@@ -205,6 +231,9 @@ export class Flappy extends Spatial {
             0.05,
             false,
         )
+
+        this.#physics = new PhysicsObject("enemy", this, this.position.x, this.position.y, 12, 12, this.onCollide)
+        physics.queueSpawn(this.#physics)
     }
 
     /**
@@ -213,6 +242,8 @@ export class Flappy extends Spatial {
      */
     update(deltaTime) {
         this.#sprite.step(deltaTime)
+        this.#physics.x = this.position.x + 2
+        this.#physics.y = this.position.y + 2
     }
 
     /**
@@ -221,6 +252,15 @@ export class Flappy extends Spatial {
      */
     render(gfx) {
         this.#sprite.draw(gfx, this.position.x, this.position.y)
+        // this.#physics.draw(gfx)
+    }
+
+    /**
+     * 
+     * @param {Flappy} self 
+     * @param {PhysicsObject} object 
+     */
+    onCollide(self, object) {
     }
 
     constructor(x, y) {
@@ -251,5 +291,54 @@ export class Swoopy extends Spatial {
 
     render(gfx) {
         this.#sprite.draw(gfx, this.position.x, this.position.y)
+    }
+}
+
+export class Explosion extends Spatial {
+
+    /** @type {AnimatedSprite} */
+    #sprite = null
+
+    ready() {
+
+        this.#sprite = new AnimatedSprite(
+            assets.images.sprites,
+            16, 16,
+            4,
+            4,
+            0.1,
+            true,
+        )
+    }
+
+    /**
+     * 
+     * @param {number} deltaTime 
+     */
+    update(deltaTime) {
+
+        this.#sprite.step(deltaTime)
+
+        if (this.#sprite.currentFrame == 3) {
+            game.queueDelete(this)
+        }
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} gfx 
+     */
+    render(gfx) {
+        
+        this.#sprite.draw(gfx, this.position.x, this.position.y)
+    }
+
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    constructor(x, y) {
+        super(x, y)
     }
 }

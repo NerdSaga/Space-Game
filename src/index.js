@@ -1,6 +1,7 @@
 import { loadAssets } from "./assets.js"
 import { game } from "./game.js"
 import { input } from "./input.js"
+import { physics } from "./physics.js"
 
 await loadAssets()
 
@@ -31,6 +32,7 @@ function loop() {
     gfx.fillStyle = "#123456ff"
     gfx.fillRect(0, 0, canvas.width, canvas.height)
     game.update(gfx, deltaTime)
+    physics.update()
 
     requestAnimationFrame(loop)
     now = performance.now()

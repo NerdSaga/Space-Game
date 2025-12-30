@@ -41,17 +41,24 @@ class Game {
 
         // Run through delete queue. MARK: TEST
         if (this.#deleteQueue.length > 0) {
-            let delObjID = 0
+
+            for (let i = 0; i < this.#deleteQueue.length; i++) {
+
+                const index = this.#deleteQueue[i].id
+                this.gameObjects[index].id = -1
+            }
+
+            this.#deleteQueue.splice(0, this.#deleteQueue.length)
+
             for (let i = 0; i < this.gameObjects.length; i++) {
-
                 const object = this.gameObjects[i]
-                const delObject = this.#deleteQueue[delObjID]
-                object.id = i
 
-                if (object.id == delObject.id) {
+                if (object.id == -1) {
                     this.gameObjects.splice(i, 1)
                 }
-
+                else {
+                    object.id = i
+                }
             }
         }
 
@@ -72,7 +79,6 @@ class Game {
             for (let i = 0; i < this.#readyQueue.length; i++) {
                 const object = this.#readyQueue[i]
                 object.ready()
-                
             }
 
             this.#readyQueue.splice(0, this.#readyQueue.length)
