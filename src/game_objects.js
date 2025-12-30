@@ -137,6 +137,7 @@ export class Player extends Spatial {
         x: 0,
         y: 0,
     }
+    #shootCooldown = 0
 
     /** @type { PhysicsObject } */
     #physics = null
@@ -160,12 +161,27 @@ export class Player extends Spatial {
      */
     update(deltaTime) {
 
+        // Update the player's velocity.
         this.#velocity.x = input.dir.x * this.#moveSpeed * deltaTime
         this.#velocity.y = input.dir.y * this.#moveSpeed * deltaTime
 
+        // Apply the velocity to the player's position.
         this.position.x += this.#velocity.x
         this.position.y += this.#velocity.y
 
+        // Update shoot cooldown
+        if (this.#shootCooldown > 0) {
+            this.#shootCooldown -= 1 * deltaTime
+        }
+
+        // Shoot
+        if (input.shoot == 1 && this.#shootCooldown <= 0) {
+            const bullet = new Bullet("playerBullet", this.position.x + 10, this.position.y, 125, 0)
+            game.queueSpawn(bullet)
+            this.#shootCooldown = 0.25
+        }
+
+        // Animate player sprite.
         if (input.dir.y == 0) {
             this.#sprite.currentFrame = 1
         }
@@ -176,6 +192,7 @@ export class Player extends Spatial {
             this.#sprite.currentFrame = 0
         }
 
+        //
         this.#physics.x = Math.round(this.position.x)
         this.#physics.y = Math.round(this.position.y + 3)
     }
@@ -199,9 +216,10 @@ export class Player extends Spatial {
             const explosion = new Explosion(self.position.x, self.position.y)
             game.queueSpawn(explosion)
             game.queueDelete(self)
+            physics.queueDelete(self.#physics)
         }
 
-        physics.queueDelete(self.#physics)
+        
     }
 
     /**
@@ -242,8 +260,8 @@ export class Flappy extends Spatial {
      */
     update(deltaTime) {
         this.#sprite.step(deltaTime)
-        this.#physics.x = this.position.x + 2
-        this.#physics.y = this.position.y + 2
+        this.#physics.x = Math.round(this.position.x + 2)
+        this.#physics.y = Math.round(this.position.y + 2)
     }
 
     /**
@@ -261,6 +279,13 @@ export class Flappy extends Spatial {
      * @param {PhysicsObject} object 
      */
     onCollide(self, object) {
+        if (object.name == "playerBullet") {
+            game.queueDelete(self)
+            physics.queueDelete(self.#physics)
+
+            const explosion = new Explosion(self.position.x, self.position.y)
+            game.queueSpawn(explosion)
+        }
     }
 
     constructor(x, y) {
@@ -291,6 +316,91 @@ export class Swoopy extends Spatial {
 
     render(gfx) {
         this.#sprite.draw(gfx, this.position.x, this.position.y)
+    }
+}
+
+export class Bullet extends Spatial {
+
+    name = "bullet"
+    velocity = {
+        x: 0,
+        y: 0,
+    }
+    #life = 3
+
+    /** @type { PhysicsObject } */
+    #physics = null
+
+    /** @type {AnimatedSprite} */
+    #sprite = null
+
+
+    ready() {
+        this.#sprite = new AnimatedSprite(
+            assets.images.sprites,
+            16, 16,
+            2,
+            4,
+            0.1,
+            false,
+        )
+
+        this.#physics = new PhysicsObject(this.name, this, this.position.x, this.position.y, 4, 4, this.onCollide)
+        physics.queueSpawn(this.#physics)
+    }
+
+    /**
+     * 
+     * @param {number} deltaTime 
+     */
+    update(deltaTime) {
+        this.#sprite.step(deltaTime)
+        this.position.x += this.velocity.x * deltaTime
+        this.position.y += this.velocity.y * deltaTime
+        this.#physics.x = this.position.x + 6
+        this.#physics.y = this.position.y + 6 
+        this.#life -= 1 * deltaTime
+        if (this.#life <= 0) {
+            game.queueDelete(this)
+            physics.queueDelete(this.#physics)
+        }
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} gfx 
+     */
+    render(gfx) {
+        this.#sprite.draw(gfx, this.position.x, this.position.y)
+        // this.#physics.draw(gfx)
+    }
+
+    /**
+     * 
+     * @param {Bullet} self 
+     * @param {PhysicsObject} object 
+     */
+    onCollide(self, object) {
+        game.queueDelete(self) // This line crashes the game.
+        physics.queueDelete(self.#physics)
+    }
+
+
+    /**
+     * 
+     * @param {string} name 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} vx 
+     * @param {number} vy 
+     */
+    constructor(name, x, y, vx, vy) {
+        super(x, y)
+        this.name = name
+        this.position.x = x
+        this.position.y = y
+        this.velocity.x = vx
+        this.velocity.y = vy
     }
 }
 

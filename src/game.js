@@ -1,4 +1,4 @@
-import { Background, Entity, Flappy, Label, Player, Swoopy } from "./game_objects.js"
+import { Background, Bullet, Entity, Flappy, Label, Player, Swoopy } from "./game_objects.js"
 
 class Game {
 
@@ -56,13 +56,15 @@ class Game {
                 if (object.id == -1) {
                     this.gameObjects.splice(i, 1)
                 }
-                else {
-                    object.id = i
+
+                if (this.gameObjects[i]) {
+                    this.gameObjects[i].id = i
                 }
+
             }
         }
 
-        // Run through spawn queue. MARK: TEST
+        // Run through spawn queue.
         if (this.#spawnQueue.length > 0) {
             for (let i = 0; i < this.#spawnQueue.length; i++) {
 

@@ -32,8 +32,9 @@ class PhysicsEngine {
                 if (object.id == -1) {
                     this.physicsObjects.splice(i, 1)
                 }
-                else {
-                    object.id = i
+
+                if (this.physicsObjects[i]) {
+                    this.physicsObjects[i].id = i
                 }
             }
         }

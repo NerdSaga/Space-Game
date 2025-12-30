@@ -9,7 +9,8 @@ const input = {
     dir: {
         x: 0,
         y: 0,
-    }
+    },
+    shoot: 0,
 }
 
 function updateDirection() {
@@ -32,6 +33,10 @@ addEventListener("keyup", (ev) => {
         input.moveRight = 0
     }
 
+    if (ev.key == " ") {
+        input.shoot = 0
+    }
+
     updateDirection()
 
 })
@@ -49,6 +54,10 @@ addEventListener("keydown", (ev) => {
     }
     if (ev.key == "d") {
         input.moveRight = 1
+    }
+
+    if (ev.key == " ") {
+        input.shoot = 1
     }
 
     updateDirection()
