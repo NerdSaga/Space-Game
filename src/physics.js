@@ -1,4 +1,4 @@
-import { Entity } from "./game_objects"
+import { Entity } from "./game_objects.js"
 
 export { physics, PhysicsObject }
 
