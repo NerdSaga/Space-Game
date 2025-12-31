@@ -35,7 +35,6 @@ class Game {
      */
     update(gfx, deltaTime) {
 
-
         // Run through delete queue. MARK: TEST
         if (this.#deleteQueue.length > 0) {
 

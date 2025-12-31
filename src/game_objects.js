@@ -132,7 +132,7 @@ export class Player extends Spatial {
 
     /** @type {AnimatedSprite} */
     #sprite = null
-    #moveSpeed = 80
+    #moveSpeed = 70
     #velocity = {
         x: 0,
         y: 0,
@@ -253,6 +253,12 @@ export class Flappy extends Spatial {
 
     /** @type { PhysicsObject } */
     #physics = null
+    #basePositionY = 0
+    #basePositionX
+    #flutterSpeed = 0.001
+    #flutterRadius = 30
+    #horizontalSpeed = 10
+    #flutterStartRot = 0
 
     ready() {
         this.#sprite = new AnimatedSprite(
@@ -266,6 +272,11 @@ export class Flappy extends Spatial {
 
         this.#physics = new PhysicsObject("enemy", this, this.position.x, this.position.y, 12, 12, this.onCollide)
         physics.queueSpawn(this.#physics)
+
+        this.#flutterStartRot = Math.random() * 20
+        this.#flutterSpeed = 0.001 + Math.random() * 0.002
+        this.#flutterRadius = 5 + Math.random() * 10
+        this.#horizontalSpeed = 30 + Math.random() * 40
     }
 
     /**
@@ -273,14 +284,22 @@ export class Flappy extends Spatial {
      * @param {number} deltaTime 
      */
     update(deltaTime) {
-        this.position.x -= 30 * deltaTime
-        this.#sprite.step(deltaTime)
+        this.#basePositionX -= this.#horizontalSpeed * deltaTime
+        this.position.x += this.#basePositionX
+        
+
+
+        // this.position.y = this.#basePositionY + (Math.sin(performance.now() * 0.001) * 30) + (Math.cos(performance.now() * 0.001) * 30)
+        this.position.x = this.#basePositionX + Math.cos(performance.now() * this.#flutterSpeed + this.#flutterStartRot) * this.#flutterRadius
+        this.position.y = this.#basePositionY + Math.sin(performance.now() * this.#flutterSpeed + this.#flutterStartRot) * this.#flutterRadius
+
+
         this.#physics.x = Math.round(this.position.x + 2)
         this.#physics.y = Math.round(this.position.y + 2)
 
+        this.#sprite.step(deltaTime)
         if (this.position.x < -32) {
-            game.queueDelete(this)
-            physics.queueDelete(this.#physics)
+            this.delete()
         }
     }
 
@@ -291,6 +310,11 @@ export class Flappy extends Spatial {
     render(gfx) {
         this.#sprite.draw(gfx, this.position.x, this.position.y)
         // this.#physics.draw(gfx)
+    }
+
+    delete() {
+        game.queueDelete(this)
+        physics.queueDelete(this.#physics)
     }
 
     /**
@@ -311,6 +335,8 @@ export class Flappy extends Spatial {
 
     constructor(x, y) {
         super(x, y)
+        this.#basePositionX = x
+        this.#basePositionY = y
     }
 }
 
@@ -319,6 +345,9 @@ export class Swoopy extends Spatial {
     /** @type { AnimatedSprite } */
     #sprite = null
 
+    /** @type { PhysicsObject } */
+    #physics = null
+
     ready() {
         this.#sprite = new AnimatedSprite(
             assets.images.sprites,
@@ -326,17 +355,47 @@ export class Swoopy extends Spatial {
             16,
             1,
             4,
-            1,
+            0.2,
             true,
         )
+
+        this.#physics = new PhysicsObject("enemy", this, this.position.x, this.position.y, 16, 10, this.onCollide)
+        physics.queueSpawn(this.#physics)
     }
 
     update(deltaTime) {
+
         this.#sprite.step(deltaTime)
+        this.position.x += -165 * deltaTime
+
+        if (this.position.x < -32) {
+            this.delete()
+        }
+
+        this.#physics.x = this.position.x
+        this.#physics.y = this.position.y + 2
     }
 
     render(gfx) {
         this.#sprite.draw(gfx, this.position.x, this.position.y)
+        // this.#physics.draw(gfx)
+    }
+
+    delete() {
+        game.queueDelete(this)
+        physics.queueDelete(this.#physics)
+    }
+
+
+    onCollide(self, object) {
+        if (object.name == "playerBullet") {
+            game.queueDelete(self)
+            physics.queueDelete(self.#physics)
+
+            const explosion = new Explosion(self.position.x, self.position.y)
+            game.queueSpawn(explosion)
+            game.stats.score += 100
+        }
     }
 }
 
@@ -481,12 +540,13 @@ export class Explosion extends Spatial {
 export class EnemySpawner extends Entity {
 
     #rect = {
-        x: 288-70,
-        y: 20,
+        x: 288 + 288,
+        y: 0,
         w: 64,
-        h: 160 - 40,
+        h: 160 - 16,
     }
-    #cooldown = 1
+    #cooldown = 0.0001
+    #baseCooldown = 0.3
 
     ready() {
 
@@ -505,13 +565,20 @@ export class EnemySpawner extends Entity {
      * @param {number} deltaTime 
      */
     step(gameLevel, deltaTime) {
-        this.#cooldown -= 1 * deltaTime
+        this.#cooldown -= deltaTime
         if (this.#cooldown <= 0) {
             // Spawn new enemy.
-
-            const enemy = new Flappy(this.#rect.x + Math.random() * this.#rect.w, this.#rect.y + Math.random() * this.#rect.h)
+            let enemy
+            const rand = Math.random()
+            if (rand < 0.25) {
+                enemy = new Swoopy(this.#rect.x + Math.random() * this.#rect.w, this.#rect.y + Math.random() * this.#rect.h)
+            }
+            else
+            {
+                enemy = new Flappy(this.#rect.x + Math.random() * this.#rect.w, this.#rect.y + Math.random() * this.#rect.h)
+            }
             gameLevel.spawn(enemy)
-            this.#cooldown = 1
+            this.#cooldown = this.#baseCooldown
         }
     }
 
@@ -587,9 +654,13 @@ export class GameLevel extends GameScene {
 
         this.#scoreLabel = new Label("0", 8, 8)
         this.spawn(this.#scoreLabel)
+
+        const swoopy = new Swoopy(16*16, 16*6)
+        this.spawn(swoopy)
     }
 
     update(deltaTime) {
+        super.update()
         this.#enemySpawner.step(this, deltaTime)
         this.#scoreLabel.text = "SCORE:" + String(game.stats.score)
     }
