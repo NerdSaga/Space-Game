@@ -1,9 +1,17 @@
-import { Background, Bullet, Entity, Flappy, Label, Player, Swoopy } from "./game_objects.js"
+import { Background, Bullet, Entity, Flappy, GameLevel, Label, Player, Swoopy } from "./game_objects.js"
 
 class Game {
 
     /** @type { Array<Entity> } */
     gameObjects = []
+
+    stats = {
+        score: 0
+    }
+
+    saveData = {
+        highScore: 0
+    }
 
     /** @type { Array<Entity> } */
     #spawnQueue = []
@@ -15,23 +23,9 @@ class Game {
     #readyQueue = []
 
     start() {
-        const backgroud = new Background()
-        this.queueSpawn(backgroud)
 
-        const player = new Player(64, 64)
-        this.queueSpawn(player)
-
-        const label = new Label("12 29 2025", 8, 8)
-        this.queueSpawn(label)
-
-        const flappy = new Flappy(288 - 50, 60)
-        this.queueSpawn(flappy)
-
-        const flappy1 = new Flappy(288 - 53, 60)
-        this.queueSpawn(flappy1)
-
-        const swoopy = new Swoopy(288 - 50, 60 + 20)
-        this.queueSpawn(swoopy)
+        const gameLevel = new GameLevel()
+        this.queueSpawn(gameLevel)
     }
 
     /**

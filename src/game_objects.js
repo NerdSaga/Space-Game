@@ -259,9 +259,15 @@ export class Flappy extends Spatial {
      * @param {number} deltaTime 
      */
     update(deltaTime) {
+        this.position.x -= 30 * deltaTime
         this.#sprite.step(deltaTime)
         this.#physics.x = Math.round(this.position.x + 2)
         this.#physics.y = Math.round(this.position.y + 2)
+
+        if (this.position.x < -32) {
+            game.queueDelete(this)
+            physics.queueDelete(this.#physics)
+        }
     }
 
     /**
@@ -285,6 +291,7 @@ export class Flappy extends Spatial {
 
             const explosion = new Explosion(self.position.x, self.position.y)
             game.queueSpawn(explosion)
+            game.stats.score += 100
         }
     }
 
@@ -454,5 +461,122 @@ export class Explosion extends Spatial {
      */
     constructor(x, y) {
         super(x, y)
+    }
+}
+
+export class EnemySpawner extends Entity {
+
+    #rect = {
+        x: 288-70,
+        y: 20,
+        w: 64,
+        h: 160 - 40,
+    }
+    #cooldown = 1
+
+    ready() {
+
+    }
+
+    /**
+     * 
+     * @param {number} deltaTime 
+     */
+    update(deltaTime) {
+    }
+
+    /**
+     * 
+     * @param {GameLevel} gameLevel 
+     * @param {number} deltaTime 
+     */
+    step(gameLevel, deltaTime) {
+        this.#cooldown -= 1 * deltaTime
+        if (this.#cooldown <= 0) {
+            // Spawn new enemy.
+
+            const enemy = new Flappy(this.#rect.x + Math.random() * this.#rect.w, this.#rect.y + Math.random() * this.#rect.h)
+            gameLevel.spawn(enemy)
+            this.#cooldown = 1
+        }
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} gfx 
+     */
+    render(gfx) {
+        gfx.fillStyle = "#ffffff22"
+        gfx.fillRect(this.#rect.x, this.#rect.y, this.#rect.w, this.#rect.h)
+    }
+}
+
+/** @abstract */
+export class GameScene extends Entity {
+
+    /** @type {Array<Entity>} */
+    #gameObjects = []
+    #entityDeleted = false
+
+    end() {
+        for (let i = 0; i < this.#gameObjects.length; i++) {
+            this.delete(this.#gameObjects[i])
+        }
+        game.queueDelete(this)
+        this.#gameObjects = null
+    }
+
+    update(deltaTime) {
+
+        if (this.#entityDeleted)
+        {
+            for (let i = 0; i <= this.#gameObjects.length; i++) {
+                const object = this.#gameObjects[i]
+                if (object.id = -1) {
+                    this.#gameObjects.splice(i, 1)
+                }
+            }
+        }
+
+    }
+
+    spawn(entity) {
+        game.queueSpawn(entity)
+        this.#gameObjects.push(entity)
+    }
+
+    delete(entity) {
+        game.queueDelete(entity)
+        this.#entityDeleted = true
+    }
+}
+
+export class GameLevel extends GameScene {
+
+    /** @type {Label} */
+    #scoreLabel = null
+
+    /** @type {EnemySpawner} */
+    #enemySpawner = null
+    #score = 0
+
+    ready() {
+
+        const background = new Background()
+        this.spawn(background)
+
+        const player = new Player(50, 160/2 - 8)
+        this.spawn(player)
+
+        this.#enemySpawner = new EnemySpawner()
+        this.spawn(this.#enemySpawner)
+
+        this.#scoreLabel = new Label("02345", 8, 8)
+        this.spawn(this.#scoreLabel)
+    }
+
+    update(deltaTime) {
+        this.#enemySpawner.step(this, deltaTime)
+        this.#scoreLabel.text = String(game.stats.score)
     }
 }
