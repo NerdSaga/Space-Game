@@ -2,7 +2,7 @@ import { loadAssets } from "./assets.js"
 import { game } from "./game.js"
 import { input } from "./input.js"
 import { physics } from "./physics.js"
-
+console.log(":".charCodeAt(0))
 await loadAssets()
 
 /** @type {HTMLCanvasElement} */

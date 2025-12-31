@@ -169,6 +169,20 @@ export class Player extends Spatial {
         this.position.x += this.#velocity.x
         this.position.y += this.#velocity.y
 
+        // Confine the player's position to the screen.
+        if (this.position.x < -32) {
+            this.position.x = -32
+        }
+        if (this.position.x > 288) {
+            this.position.x = 288
+        }
+        if (this.position.y < -16) {
+            this.position.y = -16
+        }
+        if (this.position.y > 160) {
+            this.position.y = 160
+        }
+
         // Update shoot cooldown
         if (this.#shootCooldown > 0) {
             this.#shootCooldown -= 1 * deltaTime
@@ -291,7 +305,7 @@ export class Flappy extends Spatial {
 
             const explosion = new Explosion(self.position.x, self.position.y)
             game.queueSpawn(explosion)
-            game.stats.score += 100
+            game.stats.score += 5
         }
     }
 
@@ -426,8 +440,8 @@ export class Explosion extends Spatial {
             assets.images.sprites,
             16, 16,
             4,
-            4,
-            0.1,
+            5,
+            0.05,
             true,
         )
     }
@@ -440,7 +454,7 @@ export class Explosion extends Spatial {
 
         this.#sprite.step(deltaTime)
 
-        if (this.#sprite.currentFrame == 3) {
+        if (this.#sprite.currentFrame == 4) {
             game.queueDelete(this)
         }
     }
@@ -571,12 +585,12 @@ export class GameLevel extends GameScene {
         this.#enemySpawner = new EnemySpawner()
         this.spawn(this.#enemySpawner)
 
-        this.#scoreLabel = new Label("02345", 8, 8)
+        this.#scoreLabel = new Label("0", 8, 8)
         this.spawn(this.#scoreLabel)
     }
 
     update(deltaTime) {
         this.#enemySpawner.step(this, deltaTime)
-        this.#scoreLabel.text = String(game.stats.score)
+        this.#scoreLabel.text = "SCORE:" + String(game.stats.score)
     }
 }
