@@ -11,6 +11,7 @@ const input = {
         y: 0,
     },
     shoot: 0,
+    test: 0,
 }
 
 function updateDirection() {
@@ -37,6 +38,10 @@ addEventListener("keyup", (ev) => {
         input.shoot = 0
     }
 
+    if (ev.key == "-") {
+        input.test = 0
+    }
+
     updateDirection()
 
 })
@@ -58,6 +63,10 @@ addEventListener("keydown", (ev) => {
 
     if (ev.key == " ") {
         input.shoot = 1
+    }
+
+    if (ev.key == "-") {
+        input.test = 1
     }
 
     updateDirection()

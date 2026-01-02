@@ -1,6 +1,6 @@
 import { Entity } from "./game_objects.js"
 
-export { physics, PhysicsObject }
+export { /*physics,*/ PhysicsEngine, PhysicsObject }
 
 class PhysicsEngine {
 
@@ -10,33 +10,20 @@ class PhysicsEngine {
     /** @type {Array<PhysicsObject>} */
     #spawnQueue = []
 
-    /** @type {Array<PhysicsObject>} */
-    #deleteQueue = []
+    #hasQueuedFree = false
 
     update() {
 
-        // Run through delete queue.
-        if (this.#deleteQueue.length > 0) {
-
-            for (let i = 0; i < this.#deleteQueue.length; i++) {
-
-                const index = this.#deleteQueue[i].id
-                this.physicsObjects[index].id = -1
-            }
-
-            this.#deleteQueue.splice(0, this.#deleteQueue.length)
+        if (this.#hasQueuedFree) {
 
             for (let i = 0; i < this.physicsObjects.length; i++) {
+
                 let object = this.physicsObjects[i]
 
-                while (object && object.id == -1) {
+                while (object && object.id < 0) {
 
                     this.physicsObjects.splice(i, 1)
                     object = this.physicsObjects[i]
-                }
-
-                if (this.physicsObjects[i] && this.physicsObjects[i].id != -1) {
-                    this.physicsObjects[i].id = i
                 }
             }
         }
@@ -73,7 +60,6 @@ class PhysicsEngine {
 
             }
         }
-
     }
 
     /**
@@ -95,8 +81,6 @@ class PhysicsEngine {
             checkY = true
         }
 
-
-
         return checkX && checkY
     }
 
@@ -104,7 +88,7 @@ class PhysicsEngine {
      * 
      * @param {PhysicsObject} physicsObject 
      */
-    queueSpawn(physicsObject) {
+    spawn(physicsObject) {
         this.#spawnQueue.push(physicsObject) // MARK: Make this
     }
 
@@ -112,8 +96,9 @@ class PhysicsEngine {
      * 
      * @param {PhysicsObject} physicsObject 
      */
-    queueDelete(physicsObject) {
-        this.#deleteQueue.push(physicsObject)
+    free(physicsObject) {
+        physicsObject.id = -1
+        this.#hasQueuedFree = true
     }
 }
 
@@ -165,4 +150,4 @@ class PhysicsObject {
     }
 }
 
-const physics = new PhysicsEngine()
+// const physics = new PhysicsEngine()
