@@ -124,17 +124,24 @@ class TitleScreen extends Scene {
 
     #startingGame = false
 
+    #highScoreLabel = new Label("HIGH SCORE:", 8, 16 * 3)
+
     /** @type { Label } */
     #startLabel = null
     #startLabelCountdownBase = 0.75
     #startLabelCountdown = this.#startLabelCountdownBase
 
     start() {
-        this.#startLabel = new Label("PRESS SPACE 2 START", 288/2 - 19*4, 160/2)
+        this.#startLabel = new Label("PRESS SPACE 2 START", 288/2 - 19*4, 160/2 + 8)
         this.#startLabel.visible = false
+
+        this.#highScoreLabel.text = "HIGH SCORE:" + game.stats.highScore
+        const highScoreLabelHPos = 288 / 2 - this.#highScoreLabel.text.length * 4
+        this.#highScoreLabel.position.x = highScoreLabelHPos
 
         this.spawn(new Background())
         this.spawn(this.#startLabel)
+        this.spawn(this.#highScoreLabel)
     }
 
     update(deltaTime, gfx) {
@@ -168,6 +175,7 @@ class GameLevel extends Scene {
     #endGameCountdown = this.#endGameCountdownBase
 
     start() {
+        game.stats.score = 0
         this.spawn(new Background())
         this.spawn(this.#scoreLabel)
         this.spawn(this.#player)
@@ -186,6 +194,7 @@ class GameLevel extends Scene {
         }
 
         if (this.#endGameCountdown <= 0) {
+            game.save()
             game.loadScene(new TitleScreen())
         }
     }

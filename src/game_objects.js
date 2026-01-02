@@ -140,7 +140,9 @@ export class Player extends Spatial {
         x: 0,
         y: 0,
     }
-    #shootCooldown = 0
+
+    #shootCooldownBase = 0.25
+    #shootCooldown = 0.25
     alive = true
 
     /** @type { PhysicsObject } */
@@ -189,14 +191,14 @@ export class Player extends Spatial {
 
         // Update shoot cooldown
         if (this.#shootCooldown > 0) {
-            this.#shootCooldown -= 1 * deltaTime
+            this.#shootCooldown -= deltaTime
         }
 
         // Shoot
         if (input.shoot == 1 && this.#shootCooldown <= 0) {
             const bullet = new Bullet("playerBullet", this.position.x + 10, this.position.y, 125, 0)
             game.scene.spawn(bullet)
-            this.#shootCooldown = 0.25
+            this.#shootCooldown = this.#shootCooldownBase
         }
 
         // Animate player sprite.
@@ -264,10 +266,12 @@ export class Flappy extends Spatial {
     #physics = null
     #basePositionY = 0
     #basePositionX
-    #flutterSpeed = 0.001
-    #flutterRadius = 30
+    #orbitSpeed = 0.001
+    #orbitRadius = 30
+    #orbitDirection = 1
     #horizontalSpeed = 10
-    #flutterStartRot = 0
+    #orbitStartRot = 0
+
 
     ready() {
         this.#sprite = new AnimatedSprite(
@@ -282,9 +286,17 @@ export class Flappy extends Spatial {
         this.#physics = new PhysicsObject("enemy", this, this.position.x, this.position.y, 12, 12, this.onCollide)
         game.scene.physics.spawn(this.#physics)
 
-        this.#flutterStartRot = Math.random() * 20
-        this.#flutterSpeed = 0.001 + Math.random() * 0.002
-        this.#flutterRadius = 5 + Math.random() * 10
+        this.#orbitStartRot = Math.random() * 20
+        this.#orbitSpeed = 0.001 + Math.random() * 0.002
+        this.#orbitRadius = 5 + Math.random() * 10
+
+        if (Math.random() > 0.5) {
+            this.#orbitDirection = 1
+        }
+        else {
+            this.#orbitDirection = -1
+        }
+
         this.#horizontalSpeed = 30 + Math.random() * 40
     }
 
@@ -299,8 +311,8 @@ export class Flappy extends Spatial {
 
 
         // this.position.y = this.#basePositionY + (Math.sin(performance.now() * 0.001) * 30) + (Math.cos(performance.now() * 0.001) * 30)
-        this.position.x = this.#basePositionX + Math.cos(performance.now() * this.#flutterSpeed + this.#flutterStartRot) * this.#flutterRadius
-        this.position.y = this.#basePositionY + Math.sin(performance.now() * this.#flutterSpeed + this.#flutterStartRot) * this.#flutterRadius
+        this.position.x = this.#basePositionX + Math.cos(performance.now() * this.#orbitSpeed * this.#orbitDirection + (this.#orbitStartRot)) * this.#orbitRadius
+        this.position.y = this.#basePositionY + Math.sin(performance.now() * this.#orbitSpeed * this.#orbitDirection + (this.#orbitStartRot)) * this.#orbitRadius
 
 
         this.#physics.x = Math.round(this.position.x + 2)
