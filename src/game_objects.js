@@ -239,6 +239,13 @@ export class Player extends Spatial {
             self.delete()
         }
 
+        if (object.name == "enemyBullet") {
+            const explosion = new Explosion(self.position.x, self.position.y)
+            game.scene.spawn(explosion)
+            self.alive = false
+            self.delete()
+        }
+
         
     }
 
@@ -271,6 +278,9 @@ export class Flappy extends Spatial {
     #orbitDirection = 1
     #horizontalSpeed = 10
     #orbitStartRot = 0
+    #shootCooldownBase = 5
+    #shootCooldown = this.#shootCooldownBase
+    #bulletSpeed = 80
 
 
     ready() {
@@ -298,6 +308,8 @@ export class Flappy extends Spatial {
         }
 
         this.#horizontalSpeed = 30 + Math.random() * 40
+        this.#shootCooldownBase = 4 + Math.random() * 10
+        this.#shootCooldown = 2 + Math.random() * 2
     }
 
     /**
@@ -307,16 +319,38 @@ export class Flappy extends Spatial {
     update(deltaTime) {
         this.#basePositionX -= this.#horizontalSpeed * deltaTime
         this.position.x += this.#basePositionX
-        
-
 
         // this.position.y = this.#basePositionY + (Math.sin(performance.now() * 0.001) * 30) + (Math.cos(performance.now() * 0.001) * 30)
         this.position.x = this.#basePositionX + Math.cos(performance.now() * this.#orbitSpeed * this.#orbitDirection + (this.#orbitStartRot)) * this.#orbitRadius
         this.position.y = this.#basePositionY + Math.sin(performance.now() * this.#orbitSpeed * this.#orbitDirection + (this.#orbitStartRot)) * this.#orbitRadius
 
-
         this.#physics.x = Math.round(this.position.x + 2)
         this.#physics.y = Math.round(this.position.y + 2)
+
+        if (game.stats.player.position.x + 64 < this.position.x) {
+            this.#shootCooldown -= deltaTime
+            if (this.#shootCooldown <= 0) {
+
+                let vel = [
+                    game.stats.player.position.x - this.position.x,
+                    game.stats.player.position.y - this.position.y,
+                ]
+
+                let mag = Math.sqrt(
+                    Math.pow(vel[0], 2) + Math.pow(vel[1], 2)
+                )
+                vel[0] /= mag
+                vel[1] /= mag
+
+                vel[0] *= this.#bulletSpeed
+                vel[1] *= this.#bulletSpeed
+
+                const bullet = new Bullet("enemyBullet", this.position.x, this.position.y, vel[0], vel[1])
+                game.scene.spawn(bullet)
+                this.#shootCooldown = this.#shootCooldownBase
+            }
+        }
+
 
         this.#sprite.step(deltaTime)
         if (this.position.x < -32) {
@@ -351,6 +385,7 @@ export class Flappy extends Spatial {
             const explosion = new Explosion(self.position.x, self.position.y)
             game.scene.spawn(explosion)
             game.stats.score += 5
+            object.entity.delete()
         }
     }
 
@@ -416,6 +451,7 @@ export class Swoopy extends Spatial {
             const explosion = new Explosion(self.position.x, self.position.y)
             game.scene.spawn(explosion)
             game.stats.score += 100
+            object.entity.delete()
         }
     }
 }
@@ -467,8 +503,7 @@ export class Bullet extends Spatial {
         }
 
         if (this.#delete) {
-            game.scene.free(this)
-            game.scene.physics.free(this.#physics)
+            this.delete()
         }
     }
 
@@ -487,7 +522,11 @@ export class Bullet extends Spatial {
      * @param {PhysicsObject} object 
      */
     onCollide(self, object) {
-        self.#delete = true
+    }
+
+    delete() {
+        game.scene.free(this)
+        game.scene.physics.free(this.#physics)
     }
 
 

@@ -1,3 +1,4 @@
+import { Player } from "./game_objects.js"
 import { GameLevel, Scene, TitleScreen } from "./game_scenes.js"
 
 class Game {
@@ -9,6 +10,9 @@ class Game {
     stats = {
         score: 0,
         highScore: 0,
+
+        /** @type { Player } */
+        player: null
     }
     #saveData = {
         highScore: 0
@@ -41,6 +45,7 @@ class Game {
     }
 
     loadScene(scene) {
+        game.stats.player = null
         this.#loadSceneQueue = scene
     }
 

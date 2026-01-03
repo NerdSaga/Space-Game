@@ -179,6 +179,7 @@ class GameLevel extends Scene {
         this.spawn(new Background())
         this.spawn(this.#scoreLabel)
         this.spawn(this.#player)
+        game.stats.player = this.#player
 
         this.#enemySpawner = new EnemySpawner()
         this.spawn(this.#enemySpawner)
